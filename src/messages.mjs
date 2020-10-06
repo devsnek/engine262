@@ -156,6 +156,9 @@ export const UnexpectedToken = () => 'Unexpected token';
 export const UnexpectedReservedWordStrict = () => 'Unexpected reserved word in strict mode';
 export const UseStrictNonSimpleParameter = () => 'Function with \'use strict\' directive has non-simple parameter list';
 export const URIMalformed = () => 'URI malformed';
+export const WeakRefNotObject = (v) => (surroundingAgent.feature('symbols-as-weakmap-keys')
+  ? `${i(v)} is not an object or a symbol`
+  : NotAnObject(v));
 export const WeakCollectionNotObject = (v) => `${i(v)} is not a valid weak collection entry object`;
 export const YieldInFormalParameters = () => 'yield is not allowed in function parameters';
 export const YieldNotInGenerator = () => 'yield is only valid in generators';
