@@ -6,6 +6,7 @@ export * from './async-generator-objects.mjs';
 export * from './data-types-and-values.mjs';
 export * from './dataview-objects.mjs';
 export * from './date-objects.mjs';
+export * from './error-stacks.mjs';
 export * from './execution-contexts.mjs';
 export * from './function-operations.mjs';
 export * from './generator-operations.mjs';

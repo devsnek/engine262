@@ -1,6 +1,12 @@
 import { surroundingAgent } from './engine.mjs';
-import { Type, Value, Descriptor } from './value.mjs';
-import { ToString, DefinePropertyOrThrow, CreateBuiltinFunction } from './abstract-ops/all.mjs';
+import { Type, Value } from './value.mjs';
+import {
+  RequireInternalSlot,
+  StackFramePositionRecord,
+  StackFrameRecord,
+  StackFrameSpanRecord,
+  ToString,
+} from './abstract-ops/all.mjs';
 import { X, AwaitFulfilledFunctions } from './completion.mjs';
 
 export const kInternal = Symbol('kInternal');
@@ -255,6 +261,61 @@ export class CallSite {
     return out.trim();
   }
 
+  toStackFrameRecord() {
+    const isAsync = this.isAsync();
+    const functionName = this.getFunctionName();
+    const isConstructCall = this.isConstructCall();
+    const isMethodCall = !isConstructCall && !this.isTopLevel();
+
+    let name = isAsync ? 'async ' : '';
+    let source = '';
+    let span;
+
+    if (isConstructCall) {
+      name += 'new ';
+    }
+
+    if (isMethodCall || isConstructCall) {
+      if (functionName) {
+        name += functionName;
+      } else {
+        name += '<anonymous>';
+      }
+    } else if (functionName) {
+      name += functionName;
+    }
+
+    if (this.isNative()) {
+      source = 'native';
+    } else {
+      const specifier = this.getSpecifier();
+      if (this.lastNode) {
+        if (specifier) {
+          source = `${specifier}:`;
+        }
+
+        const { start } = this.lastNode.location;
+        span = new StackFrameSpanRecord({
+          StartPosition: new StackFramePositionRecord({
+            Line: start.line,
+            Column: start.column,
+          }),
+        });
+      } else if (specifier) {
+        source = specifier;
+      } else {
+        source = '<anonymous>';
+      }
+    }
+
+    return new StackFrameRecord({
+      Name: name,
+      Source: source,
+      Span: span,
+      callSite: this,
+    });
+  }
+
   toString() {
     const isAsync = this.isAsync();
     const functionName = this.getFunctionName();
@@ -309,6 +370,8 @@ function captureAsyncStack(stack) {
 }
 
 export function captureStack(O) {
+  X(RequireInternalSlot(O, 'ErrorData'));
+
   const stack = [];
   for (let i = surroundingAgent.executionContextStack.length - 2; i >= 0; i -= 1) {
     const e = surroundingAgent.executionContextStack[i];
@@ -325,24 +388,5 @@ export function captureStack(O) {
     captureAsyncStack(stack);
   }
 
-  let cache = null;
-
-  X(DefinePropertyOrThrow(O, new Value('stack'), Descriptor({
-    Get: CreateBuiltinFunction(() => {
-      if (cache === null) {
-        let errorString = X(ToString(O)).stringValue();
-        stack.forEach((s) => {
-          errorString = `${errorString}\n    at ${s.toString()}`;
-        });
-        cache = new Value(errorString);
-      }
-      return cache;
-    }, []),
-    Set: CreateBuiltinFunction(([value = Value.undefined]) => {
-      cache = value;
-      return Value.undefined;
-    }, []),
-    Enumerable: Value.false,
-    Configurable: Value.true,
-  })));
+  O.ErrorData = stack.map((callSite) => callSite.toStackFrameRecord());
 }
