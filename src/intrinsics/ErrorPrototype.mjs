@@ -6,7 +6,9 @@ import {
   Value,
 } from '../value.mjs';
 import {
+  CreateDataPropertyOrThrow,
   Get,
+  GetStackString,
   ToString,
 } from '../abstract-ops/all.mjs';
 import { Q } from '../completion.mjs';
@@ -48,11 +50,40 @@ function ErrorProto_toString(args, { thisValue }) {
   return new Value(`${name.stringValue()}: ${msg.stringValue()}`);
 }
 
+// https://tc39.es/proposal-error-stacks/#sec-get-error.prototype.stack
+function ErrorProto_getStack(args, { thisValue }) {
+  // 1. Let E be the this value.
+  const E = thisValue;
+  // 2. If Type(E) is not Object, throw a TypeError exception.
+  if (Type(E) !== 'Object') {
+    return surroundingAgent.Throw('TypeError', 'NotAnObject', E);
+  }
+  // 3. If E does not have an [[ErrorData]] internal slot, return undefined.
+  if (!('ErrorData' in E)) {
+    return Value.undefined;
+  }
+  // 4. Return ? GetStackString(error).
+  return Q(GetStackString(E));
+}
+
+// https://tc39.es/proposal-error-stacks/#sec-set-error.prototype.stack
+function ErrorProto_setStack([value], { thisValue }) {
+  // 1. Let E be the this value.
+  const E = thisValue;
+  // 2. If Type(E) is not Object, throw a TypeError exception.
+  if (Type(E) !== 'Object') {
+    return surroundingAgent.Throw('TypeError', 'NotAnObject', E);
+  }
+  // 3. Return ? CreateDataPropertyOrThrow(E, "stack", value);
+  return Q(CreateDataPropertyOrThrow(E, new Value('stack'), value));
+}
+
 export function bootstrapErrorPrototype(realmRec) {
   const proto = bootstrapPrototype(realmRec, [
     ['toString', ErrorProto_toString, 0],
     ['message', new Value('')],
     ['name', new Value('Error')],
+    ['stack', [ErrorProto_getStack, ErrorProto_setStack]],
   ], realmRec.Intrinsics['%Object.prototype%']);
 
   realmRec.Intrinsics['%Error.prototype%'] = proto;
