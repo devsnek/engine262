@@ -1,7 +1,23 @@
 import { surroundingAgent } from '../engine.mjs';
-import { Value } from '../value.mjs';
+import { Type, Value } from '../value.mjs';
 import { NormalCompletion, Q, X } from '../completion.mjs';
 import { Assert, Call } from './all.mjs';
+
+// https://github.com/tc39/proposal-symbols-as-weakmap-keys
+export function HasIdentity(argument) {
+  // 1. If Type(argument) is Object, return true.
+  if (Type(argument) === 'Object') {
+    return Value.true;
+  }
+
+  // (*SymbolsAsWeakMapKeys) 2. If Type(argument) is Symbol, return true.
+  if (Type(argument) === 'Symbol' && surroundingAgent.feature('symbols-as-weakmap-keys')) {
+    return Value.true;
+  }
+
+  // 3. Return false.
+  return Value.false;
+}
 
 // #sec-clear-kept-objects
 export function ClearKeptObjects() {
