@@ -4,7 +4,6 @@ import {
   CreateBuiltinFunction,
   PerformPromiseThen,
   PromiseResolve,
-  SetFunctionLength,
 } from './abstract-ops/all.mjs';
 import { Value } from './value.mjs';
 import { resume } from './helpers.mjs';
@@ -122,12 +121,12 @@ export function* Await(value) {
   const asyncContext = surroundingAgent.runningExecutionContext;
   const promise = Q(PromiseResolve(surroundingAgent.intrinsic('%Promise%'), value));
   const stepsFulfilled = AwaitFulfilledFunctions;
-  const onFulfilled = X(CreateBuiltinFunction(stepsFulfilled, ['AsyncContext']));
-  X(SetFunctionLength(onFulfilled, 1));
+  const lengthFulfilled = 1;
+  const onFulfilled = X(CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, new Value(''), ['AsyncContext']));
   onFulfilled.AsyncContext = asyncContext;
   const stepsRejected = AwaitRejectedFunctions;
-  const onRejected = X(CreateBuiltinFunction(stepsRejected, ['AsyncContext']));
-  X(SetFunctionLength(onRejected, 1));
+  const lengthRejected = 1;
+  const onRejected = X(CreateBuiltinFunction(stepsRejected, lengthRejected, new Value(''), ['AsyncContext']));
   onRejected.AsyncContext = asyncContext;
   X(PerformPromiseThen(promise, onFulfilled, onRejected));
   surroundingAgent.executionContextStack.pop(asyncContext);

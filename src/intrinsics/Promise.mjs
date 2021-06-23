@@ -28,8 +28,6 @@ import {
   OrdinaryCreateFromConstructor,
   PromiseCapabilityRecord,
   PromiseResolve,
-  SetFunctionLength,
-  SetFunctionName,
 } from '../abstract-ops/all.mjs';
 import {
   AbruptCompletion, Completion,
@@ -171,27 +169,27 @@ function PerformPromiseAll(iteratorRecord, constructor, resultCapability, promis
     const nextPromise = Q(Call(promiseResolve, constructor, [nextValue]));
     // j. Let steps be the algorithm steps defined in Promise.all Resolve Element Functions.
     const steps = PromiseAllResolveElementFunctions;
-    // k. Let resolveElement be ! CreateBuiltinFunction(steps, « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
-    const resolveElement = X(CreateBuiltinFunction(steps, [
+    // k. Let length be the number of non-optional parameters of the function definition in Promise.all Resolve Element Functions.
+    const length = 1;
+    // l. Let onFulfilled be ! CreateBuiltinFunction(steps, length, "", « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
+    const onFulfilled = X(CreateBuiltinFunction(steps, length, new Value(''), [
       'AlreadyCalled', 'Index', 'Values', 'Capability', 'RemainingElements',
     ]));
-    X(SetFunctionLength(resolveElement, 1));
-    X(SetFunctionName(resolveElement, new Value('')));
-    // l. Set resolveElement.[[AlreadyCalled]] to the Record { [[Value]]: false }.
-    resolveElement.AlreadyCalled = { Value: false };
-    // m. Set resolveElement.[[Index]] to index.
-    resolveElement.Index = index;
-    // n. Set resolveElement.[[Values]] to values.
-    resolveElement.Values = values;
-    // o. Set resolveElement.[[Capability]] to resultCapability.
-    resolveElement.Capability = resultCapability;
-    // p. Set resolveElement.[[RemainingElements]] to remainingElementsCount.
-    resolveElement.RemainingElements = remainingElementsCount;
-    // q. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
+    // m. Set onFulfilled.[[AlreadyCalled]] to the Record { [[Value]]: false }.
+    onFulfilled.AlreadyCalled = { Value: false };
+    // n. Set onFulfilled.[[Index]] to index.
+    onFulfilled.Index = index;
+    // o. Set onFulfilled.[[Values]] to values.
+    onFulfilled.Values = values;
+    // p. Set onFulfilled.[[Capability]] to resultCapability.
+    onFulfilled.Capability = resultCapability;
+    // q. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
+    onFulfilled.RemainingElements = remainingElementsCount;
+    // r. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
     remainingElementsCount.Value += 1;
-    // r. Perform ? Invoke(nextPromise, "then", « resolveElement, resultCapability.[[Reject]] »).
-    Q(Invoke(nextPromise, new Value('then'), [resolveElement, resultCapability.Reject]));
-    // s. Set index to index + 1.
+    // s. Perform ? Invoke(nextPromise, "then", « onFulfilled, resultCapability.[[Reject]] »).
+    Q(Invoke(nextPromise, new Value('then'), [onFulfilled, resultCapability.Reject]));
+    // t. Set index to index + 1.
     index += 1;
   }
 }
@@ -323,57 +321,57 @@ function PerformPromiseAllSettled(iteratorRecord, constructor, resultCapability,
     values.push(Value.undefined);
     // i. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
     const nextPromise = Q(Call(promiseResolve, constructor, [nextValue]));
-    // j. Let steps be the algorithm steps defined in Promise.allSettled Resolve Element Functions.
-    const steps = PromiseAllSettledResolveElementFunctions;
-    // k. Let resolveElement be ! CreateBuiltinFunction(steps, « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
-    const resolveElement = X(CreateBuiltinFunction(steps, [
+    // j. Let stepsFulfilled be the algorithm steps defined in Promise.allSettled Resolve Element Functions.
+    const stepsFulfilled = PromiseAllSettledResolveElementFunctions;
+    // k. Let lengthFulfilled be the number of non-optional parameters of the function definition in Promise.allSettled Resolve Element Functions.
+    const lengthFulfilled = 1;
+    // l. Let onFulfilled be ! CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, "", « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
+    const onFulfilled = X(CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, new Value(''), [
       'AlreadyCalled',
       'Index',
       'Values',
       'Capability',
       'RemainingElements',
     ]));
-    X(SetFunctionLength(resolveElement, 1));
-    X(SetFunctionName(resolveElement, new Value('')));
-    // l. Let alreadyCalled be the Record { [[Value]]: false }.
+    // m. Let alreadyCalled be the Record { [[Value]]: false }.
     const alreadyCalled = { Value: false };
-    // m. Set resolveElement.[[AlreadyCalled]] to alreadyCalled.
-    resolveElement.AlreadyCalled = alreadyCalled;
-    // n. Set resolveElement.[[Index]] to index.
-    resolveElement.Index = index;
-    // o. Set resolveElement.[[Values]] to values.
-    resolveElement.Values = values;
-    // p. Set resolveElement.[[Capability]] to resultCapability.
-    resolveElement.Capability = resultCapability;
-    // q. Set resolveElement.[[RemainingElements]] to remainingElementsCount.
-    resolveElement.RemainingElements = remainingElementsCount;
-    // r. Let rejectSteps be the algorithm steps defined in Promise.allSettled Reject Element Functions.
-    const rejectSteps = PromiseAllSettledRejectElementFunctions;
-    // s. Let rejectElement be ! CreateBuiltinFunction(rejectSteps, « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
-    const rejectElement = X(CreateBuiltinFunction(rejectSteps, [
+    // n. Set onFulfilled.[[AlreadyCalled]] to alreadyCalled.
+    onFulfilled.AlreadyCalled = alreadyCalled;
+    // o. Set onFulfilled.[[Index]] to index.
+    onFulfilled.Index = index;
+    // p. Set onFulfilled.[[Values]] to values.
+    onFulfilled.Values = values;
+    // q. Set onFulfilled.[[Capability]] to resultCapability.
+    onFulfilled.Capability = resultCapability;
+    // r. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
+    onFulfilled.RemainingElements = remainingElementsCount;
+    // s. Let rejectSteps be the algorithm steps defined in Promise.allSettled Reject Element Functions.
+    const stepsRejected = PromiseAllSettledRejectElementFunctions;
+    // t. Let lengthRejected be the number of non-optional parameters of the function definition in Promise.allSettled Reject Element Functions.
+    const lengthRejected = 1;
+    // u. Let onRejected be ! CreateBuiltinFunction(stepsRejected, lengthRejected, "", « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
+    const onRejected = X(CreateBuiltinFunction(stepsRejected, lengthRejected, new Value(''), [
       'AlreadyCalled',
       'Index',
       'Values',
       'Capability',
       'RemainingElements',
     ]));
-    X(SetFunctionLength(rejectElement, 1));
-    X(SetFunctionName(rejectElement, new Value('')));
-    // t. Set rejectElement.[[AlreadyCalled]] to alreadyCalled.
-    rejectElement.AlreadyCalled = alreadyCalled;
-    // u. Set rejectElement.[[Index]] to index.
-    rejectElement.Index = index;
-    // v. Set rejectElement.[[Values]] to values.
-    rejectElement.Values = values;
-    // w. Set rejectElement.[[Capability]] to resultCapability.
-    rejectElement.Capability = resultCapability;
-    // x. Set rejectElement.[[RemainingElements]] to remainingElementsCount.
-    rejectElement.RemainingElements = remainingElementsCount;
-    // y. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
+    // v. Set onRejected.[[AlreadyCalled]] to alreadyCalled.
+    onRejected.AlreadyCalled = alreadyCalled;
+    // w. Set onRejected.[[Index]] to index.
+    onRejected.Index = index;
+    // x. Set onRejected.[[Values]] to values.
+    onRejected.Values = values;
+    // y. Set onRejected.[[Capability]] to resultCapability.
+    onRejected.Capability = resultCapability;
+    // z. Set onRejected.[[RemainingElements]] to remainingElementsCount.
+    onRejected.RemainingElements = remainingElementsCount;
+    // aa. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
     remainingElementsCount.Value += 1;
-    // z. Perform ? Invoke(nextPromise, "then", « resolveElement, rejectElement »).
-    Q(Invoke(nextPromise, new Value('then'), [resolveElement, rejectElement]));
-    // aa. Set index to index + 1.
+    // ab. Perform ? Invoke(nextPromise, "then", « onFulfilled, onRejected »).
+    Q(Invoke(nextPromise, new Value('then'), [onFulfilled, onRejected]));
+    // ac. Set index to index + 1.
     index += 1;
   }
 }
@@ -508,27 +506,27 @@ function PerformPromiseAny(iteratorRecord, constructor, resultCapability, promis
     errors.push(Value.undefined);
     // i. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
     const nextPromise = Q(Call(promiseResolve, constructor, [nextValue]));
-    // j. Let steps be the algorithm steps defined in Promise.any Reject Element Functions.
-    const steps = PromiseAnyRejectElementFunctions;
-    // k. Let rejectElement be ! CreateBuiltinFunction(steps, « [[AlreadyCalled]], [[Index]], [[Errors]], [[Capability]], [[RemainingElements]] »).
-    const rejectElement = X(CreateBuiltinFunction(steps, ['AlreadyCalled', 'Index', 'Errors', 'Capability', 'RemainingElements']));
-    X(SetFunctionLength(rejectElement, 1));
-    X(SetFunctionName(rejectElement, new Value('')));
-    // l. Set rejectElement.[[AlreadyCalled]] to a new Record { [[Value]]: false }.
-    rejectElement.AlreadyCalled = { Value: false };
-    // m. Set rejectElement.[[Index]] to index.
-    rejectElement.Index = index;
-    // n. Set rejectElement.[[Errors]] to errors.
-    rejectElement.Errors = errors;
-    // o. Set rejectElement.[[Capability]] to resultCapability.
-    rejectElement.Capability = resultCapability;
-    // p. Set rejectElement.[[RemainingElements]] to remainingElementsCount.
-    rejectElement.RemainingElements = remainingElementsCount;
-    // q. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
+    // j. Let stepsRejected be the algorithm steps defined in Promise.any Reject Element Functions.
+    const stepsRejected = PromiseAnyRejectElementFunctions;
+    // k. Let lengthRejected be the number of non-optional parameters of the function definition in Promise.any Reject Element Functions.
+    const lengthRejected = 1;
+    // l. Let onRejected be ! CreateBuiltinFunction(stepsRejected, lengthRejected, "", « [[AlreadyCalled]], [[Index]], [[Errors]], [[Capability]], [[RemainingElements]] »).
+    const onRejected = X(CreateBuiltinFunction(stepsRejected, lengthRejected, new Value(''), ['AlreadyCalled', 'Index', 'Errors', 'Capability', 'RemainingElements']));
+    // m. Set onRejected.[[AlreadyCalled]] to a new Record { [[Value]]: false }.
+    onRejected.AlreadyCalled = { Value: false };
+    // n. Set onRejected.[[Index]] to index.
+    onRejected.Index = index;
+    // o. Set onRejected.[[Errors]] to errors.
+    onRejected.Errors = errors;
+    // p. Set onRejected.[[Capability]] to resultCapability.
+    onRejected.Capability = resultCapability;
+    // q. Set onRejected.[[RemainingElements]] to remainingElementsCount.
+    onRejected.RemainingElements = remainingElementsCount;
+    // r. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
     remainingElementsCount.Value += 1;
-    // r. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], rejectElement »).
-    Q(Invoke(nextPromise, new Value('then'), [resultCapability.Resolve, rejectElement]));
-    // s. Increase index by 1.
+    // s. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], onRejected »).
+    Q(Invoke(nextPromise, new Value('then'), [resultCapability.Resolve, onRejected]));
+    // t. Increase index by 1.
     index += 1;
   }
 }

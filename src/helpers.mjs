@@ -354,7 +354,8 @@ export function captureStack(O) {
 
   let cache = null;
 
-  X(DefinePropertyOrThrow(O, new Value('stack'), Descriptor({
+  const name = new Value('stack');
+  X(DefinePropertyOrThrow(O, name, Descriptor({
     Get: CreateBuiltinFunction(() => {
       if (cache === null) {
         let errorString = X(ToString(O)).stringValue();
@@ -364,11 +365,11 @@ export function captureStack(O) {
         cache = new Value(errorString);
       }
       return cache;
-    }, []),
+    }, 0, name, [], undefined, undefined, new Value('get')),
     Set: CreateBuiltinFunction(([value = Value.undefined]) => {
       cache = value;
       return Value.undefined;
-    }, []),
+    }, 1, name, [], undefined, undefined, new Value('set')),
     Enumerable: Value.false,
     Configurable: Value.true,
   })));

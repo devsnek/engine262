@@ -409,7 +409,7 @@ function BuiltinFunctionConstruct(argumentsList, newTarget) {
 }
 
 // 9.3.3 #sec-createbuiltinfunction
-export function CreateBuiltinFunction(steps, internalSlotsList, realm, prototype, isConstructor = Value.false) {
+export function CreateBuiltinFunction(steps, length, name, internalSlotsList, realm, prototype, prefix, isConstructor = Value.false) {
   // 1. Assert: steps is either a set of algorithm steps or other definition of a function's behaviour provided in this specification.
   Assert(typeof steps === 'function');
   // 2. If realm is not present, set realm to the current Realm Record.
@@ -439,7 +439,17 @@ export function CreateBuiltinFunction(steps, internalSlotsList, realm, prototype
   func.ScriptOrModule = Value.null;
   // 10. Set func.[[InitialName]] to null.
   func.InitialName = Value.null;
-  // 11. Return func.
+  // 11. Perform ! SetFunctionLength(func, length).
+  X(SetFunctionLength(func, length));
+  // 12. If prefix is not present, then
+  if (prefix === undefined) {
+    // a. Perform ! SetFunctionName(func, name).
+    X(SetFunctionName(func, name));
+  } else { // 13. Else
+    // a. Perform ! SetFunctionName(func, name, prefix).
+    X(SetFunctionName(func, name, prefix));
+  }
+  // 13. Return func.
   return func;
 }
 

@@ -1,8 +1,6 @@
 import {
   Assert,
   CreateBuiltinFunction,
-  SetFunctionName,
-  SetFunctionLength,
   ToInt32,
   ToString,
   F,
@@ -98,8 +96,5 @@ function ParseInt([string = Value.undefined, radix = Value.undefined]) {
 }
 
 export function bootstrapParseInt(realmRec) {
-  const fn = CreateBuiltinFunction(ParseInt, [], realmRec);
-  X(SetFunctionName(fn, new Value('parseInt')));
-  X(SetFunctionLength(fn, 2));
-  realmRec.Intrinsics['%parseInt%'] = fn;
+  realmRec.Intrinsics['%parseInt%'] = CreateBuiltinFunction(ParseInt, 2, new Value('parseInt'), [], realmRec);
 }

@@ -12,7 +12,6 @@ import {
   CreateBuiltinFunction,
   CreateDataProperty,
   DefinePropertyOrThrow,
-  SetFunctionLength,
   ToString,
   SameValue,
   MakeBasicObject,
@@ -151,36 +150,57 @@ export function CreateUnmappedArgumentsObject(argumentsList) {
 }
 
 function ArgGetterSteps() {
+  // 1. Let f be the active function object.
   const f = this;
+  // 2. Let name be f.[[Name]].
   const name = f.Name;
+  // 3. Let env be f.[[Env]].
   const env = f.Env;
+  // 4. Return env.GetBindingValue(name, false).
   return env.GetBindingValue(name, Value.false);
 }
 
 // 9.4.4.7.1 #sec-makearggetter
 function MakeArgGetter(name, env) {
+  // 1. Let steps be the steps of an ArgGetter function as specified below.
   const steps = ArgGetterSteps;
-  const getter = X(CreateBuiltinFunction(steps, ['Name', 'Env']));
+  // 2. Let length be the number of non-optional parameters of an ArgGetter function as specified below.
+  const length = 0;
+  // 3. Let getter be ! CreateBuiltinFunction(steps, length, "", « [[Name]], [[Env]] »).
+  const getter = X(CreateBuiltinFunction(steps, length, new Value(''), ['Name', 'Env']));
+  // 4. Set getter.[[Name]] to name.
   getter.Name = name;
+  // 5. Set getter.[[Env]] to env.
   getter.Env = env;
+  // 6. Return getter.
   return getter;
 }
 
 function ArgSetterSteps([value]) {
   Assert(value !== undefined);
+  // 1. Let f be the active function object.
   const f = this;
+  // 2. Let name be f.[[Name]].
   const name = f.Name;
+  // 3. Let env be f.[[Env]].
   const env = f.Env;
+  // 4. Return env.SetMutableBinding(name, value, false).
   return env.SetMutableBinding(name, value, Value.false);
 }
 
 // 9.4.4.7.2 #sec-makeargsetter
 function MakeArgSetter(name, env) {
+  // 1. Let steps be the steps of an ArgSetter function as specified below.
   const steps = ArgSetterSteps;
-  const setter = X(CreateBuiltinFunction(steps, ['Name', 'Env']));
-  SetFunctionLength(setter, 1);
+  // 2. Let length be the number of non-optional parameters of an ArgSetter function as specified below.
+  const length = 1;
+  // 3. Let setter be ! CreateBuiltinFunction(steps, length, "", « [[Name]], [[Env]] »).
+  const setter = X(CreateBuiltinFunction(steps, length, new Value(''), ['Name', 'Env']));
+  // 4. Set setter.[[Name]] to name.
   setter.Name = name;
+  // 5. Set setter.[[Env]] to env.
   setter.Env = env;
+  // 6. Return setter.
   return setter;
 }
 

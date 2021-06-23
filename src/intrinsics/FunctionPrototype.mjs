@@ -229,11 +229,11 @@ function FunctionProto_hasInstance([V = Value.undefined], { thisValue }) {
 }
 
 export function bootstrapFunctionPrototype(realmRec) {
-  const proto = CreateBuiltinFunction(FunctionProto, [], realmRec, realmRec.Intrinsics['%Object.prototype%']);
+  const proto = CreateBuiltinFunction(
+    FunctionProto, 0, new Value(''), [],
+    realmRec, realmRec.Intrinsics['%Object.prototype%'],
+  );
   realmRec.Intrinsics['%Function.prototype%'] = proto;
-
-  SetFunctionLength(proto, 0);
-  SetFunctionName(proto, new Value(''));
 
   const readonly = { Writable: Value.false, Configurable: Value.false };
   assignProps(realmRec, proto, [

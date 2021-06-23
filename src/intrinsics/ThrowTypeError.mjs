@@ -1,6 +1,10 @@
 import { surroundingAgent } from '../engine.mjs';
-import { CreateBuiltinFunction, F } from '../abstract-ops/all.mjs';
-import { Value, Descriptor } from '../value.mjs';
+import {
+  Assert,
+  CreateBuiltinFunction,
+  SetIntegrityLevel,
+} from '../abstract-ops/all.mjs';
+import { Value } from '../value.mjs';
 import { X } from '../completion.mjs';
 
 // #sec-%throwtypeerror%
@@ -10,27 +14,7 @@ function ThrowTypeError() {
 }
 
 export function bootstrapThrowTypeError(realmRec) {
-  const f = X(CreateBuiltinFunction(
-    ThrowTypeError, [], realmRec, Value.null,
-  ));
-
-  f.Extensible = Value.false;
-
-  f.properties.set(new Value('length'), Descriptor({
-    Value: F(+0),
-    Writable: Value.false,
-    Enumerable: Value.false,
-    Configurable: Value.false,
-  }));
-
-  f.properties.set(new Value('name'), Descriptor({
-    Value: new Value(''),
-    Writable: Value.false,
-    Enumerable: Value.false,
-    Configurable: Value.false,
-  }));
-
-  f.Prototype = realmRec.Intrinsics['%Function.prototype%'];
-
+  const f = X(CreateBuiltinFunction(ThrowTypeError, 0, new Value(''), [], realmRec));
+  Assert(X(SetIntegrityLevel(f, 'frozen')) === Value.true);
   realmRec.Intrinsics['%ThrowTypeError%'] = f;
 }
