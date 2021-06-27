@@ -9,7 +9,6 @@ import {
   IsConstructor,
   MakeConstructor,
   MakeClassConstructor,
-  SetFunctionLength,
   SetFunctionName,
   CreateMethodProperty,
   OrdinaryObjectCreate,
@@ -97,9 +96,7 @@ export function* ClassDefinitionEvaluation(ClassTail, classBinding, className) {
     // a. Let steps be the algorithm steps defined in #sec-default-constructor-functions
     const steps = DefaultConstructorFunctions;
     // b. Let F be ! CreateBuiltinFunction(steps, 0, className, [[ConstructorKind]], [[SourceText]], empty, constructorParent).
-    F = X(CreateBuiltinFunction(steps, ['ConstructorKind', 'SourceText'], undefined, constructorParent, Value.true));
-    SetFunctionLength(F, 0);
-    SetFunctionName(F, className);
+    F = X(CreateBuiltinFunction(steps, 0, className, ['ConstructorKind', 'SourceText'], undefined, constructorParent, undefined, Value.true));
   } else { // 11. Else,
     // a. Let constructorInfo be ! DefineMethod of constructor with arguments proto and constructorParent.
     const constructorInfo = X(yield* DefineMethod(constructor, proto, constructorParent));

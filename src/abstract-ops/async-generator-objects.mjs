@@ -87,68 +87,114 @@ function AsyncGeneratorReject(generator, exception) {
 
 // 25.5.3.5.1 #async-generator-resume-next-return-processor-fulfilled
 function AsyncGeneratorResumeNextReturnProcessorFulfilledFunctions([value = Value.undefined]) {
+  // 1. Let F be the active function object.
   const F = surroundingAgent.activeFunctionObject;
+  // 2. Set F.[[Generator]].[[AsyncGeneratorState]] to completed.
   F.Generator.AsyncGeneratorState = 'completed';
+  // 3. Return ! AsyncGeneratorResolve(F.[[Generator]], value, true).
   return X(AsyncGeneratorResolve(F.Generator, value, Value.true));
 }
 
 // 25.5.3.5.2 #async-generator-resume-next-return-processor-rejected
 function AsyncGeneratorResumeNextReturnProcessorRejectedFunctions([reason = Value.undefined]) {
+  // 1. Let F be the active function object.
   const F = surroundingAgent.activeFunctionObject;
+  // 2. Set F.[[Generator]].[[AsyncGeneratorState]] to completed.
   F.Generator.AsyncGeneratorState = 'completed';
+  // 3. Return ! AsyncGeneratorReject(F.[[Generator]], reason).
   return X(AsyncGeneratorReject(F.Generator, reason));
 }
 
 // 25.5.3.5 #sec-asyncgeneratorresumenext
 function AsyncGeneratorResumeNext(generator) {
-  // Assert: generator is an AsyncGenerator instance.
+  // 1. Assert: generator is an AsyncGenerator instance.
+  // 2. Let state be generator.[[AsyncGeneratorState]].
   let state = generator.AsyncGeneratorState;
+  // 3. Assert: state is not executing.
   Assert(state !== 'executing');
+  // 4. If state is awaiting-return, return undefined.
   if (state === 'awaiting-return') {
     return Value.undefined;
   }
+  // 5. Let queue be generator.[[AsyncGeneratorQueue]].
   const queue = generator.AsyncGeneratorQueue;
+  // 6. If queue is an empty List, return undefined.
   if (queue.length === 0) {
     return Value.undefined;
   }
+  // 7. Let next be the value of the first element of queue.
   const next = queue[0];
+  // 8. Assert: next is an AsyncGeneratorRequest record.
   Assert(next instanceof AsyncGeneratorRequestRecord);
+  // 9. Let completion be next.[[Completion]].
   const completion = next.Completion;
+  // 10. If completion is an abrupt completion, then
   if (completion instanceof AbruptCompletion) {
+    // a. If state is suspendedStart, then
     if (state === 'suspendedStart') {
+      // i. Set generator.[[AsyncGeneratorState]] to completed.
       generator.AsyncGeneratorState = 'completed';
+      // ii. Set state to completed.
       state = 'completed';
     }
+    // b. If state is completed, then
     if (state === 'completed') {
+      // i. If completion.[[Type]] is return, then
       if (completion.Type === 'return') {
+        // 1. Set generator.[[AsyncGeneratorState]] to awaiting-return.
         generator.AsyncGeneratorState = 'awaiting-return';
+        // 2. Let promise be ? PromiseResolve(%Promise%, completion.[[Value]]).
         const promise = Q(PromiseResolve(surroundingAgent.intrinsic('%Promise%'), completion.Value));
+        // 3. Let stepsFulfilled be the algorithm steps defined in AsyncGeneratorResumeNext Return Processor Fulfilled Functions.
         const stepsFulfilled = AsyncGeneratorResumeNextReturnProcessorFulfilledFunctions;
-        const onFulfilled = X(CreateBuiltinFunction(stepsFulfilled, ['Generator']));
+        // 4. Let lengthFulfilled be the number of non-optional parameters of the function definition in AsyncGeneratorResumeNext Return Processor Fulfilled Functions.
+        const lengthFulfilled = 1;
+        // 5. Let onFulfilled be ! CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, "", « [[Generator]] »).
+        const onFulfilled = X(CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, new Value(''), ['Generator']));
+        // 6. Set onFulfilled.[[Generator]] to generator.
         onFulfilled.Generator = generator;
+        // 7. Let stepsRejected be the algorithm steps defined in AsyncGeneratorResumeNext Return Processor Rejected Functions.
         const stepsRejected = AsyncGeneratorResumeNextReturnProcessorRejectedFunctions;
-        const onRejected = X(CreateBuiltinFunction(stepsRejected, ['Generator']));
+        // 8. Let lengthRejected be the number of non-optional parameters of the function definition in AsyncGeneratorResumeNext Return Processor Rejected Functions.
+        const lengthRejected = 1;
+        // 9. Let onRejected be ! CreateBuiltinFunction(stepsRejected, lengthRejected, "", « [[Generator]] »).
+        const onRejected = X(CreateBuiltinFunction(stepsRejected, lengthRejected, new Value(''), ['Generator']));
+        // 10. Set onRejected.[[Generator]] to generator.
         onRejected.Generator = generator;
+        // 11. Perform ! PerformPromiseThen(promise, onFulfilled, onRejected).
         X(PerformPromiseThen(promise, onFulfilled, onRejected));
+        // 12. Return undefined.
         return Value.undefined;
-      } else {
+      } else { // ii . Else,
+        // 1. Assert: completion.[[Type]] is throw.
         Assert(completion.Type === 'throw');
+        // 2. Perform ! AsyncGeneratorReject(generator, completion.[[Value]]).
         X(AsyncGeneratorReject(generator, completion.Value));
+        // 3. Return undefined.
         return Value.undefined;
       }
     }
-  } else if (state === 'completed') {
+  } else if (state === 'completed') { // 11. Else if state is completed, return ! AsyncGeneratorResolve(generator, undefined, true).
     return X(AsyncGeneratorResolve(generator, Value.undefined, Value.true));
   }
+  // 12. Assert: state is either suspendedStart or suspendedYield.
   Assert(state === 'suspendedStart' || state === 'suspendedYield');
+  // 13. Let genContext be generator.[[AsyncGeneratorContext]].
   const genContext = generator.AsyncGeneratorContext;
+  // 14. Let callerContext be the running execution context.
   const callerContext = surroundingAgent.runningExecutionContext;
-  // Suspend callerContext
+  // 15. Suspend callerContext.
+  // 16. Set generator.[[AsyncGeneratorState]] to executing.
   generator.AsyncGeneratorState = 'executing';
+  // 17. Push genContext onto the execution context stack; genContext is now the running execution context.
   surroundingAgent.executionContextStack.push(genContext);
+  // 18. Resume the suspended evaluation of genContext using completion as the result of the operation that suspended it. Let result be the completion record returned by the resumed computation.
   const result = resume(genContext, completion);
+  // 19. Assert: result is never an abrupt completion.
   Assert(!(result instanceof AbruptCompletion));
+  // 20. Assert: When we return here, genContext has already been removed from the execution context stack and callerContext is the currently running execution context.
   Assert(surroundingAgent.runningExecutionContext === callerContext);
+  // 21. Return undefined.
   return Value.undefined;
 }
 

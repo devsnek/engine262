@@ -6,8 +6,6 @@ import {
 } from '../value.mjs';
 import {
   CreateBuiltinFunction,
-  SetFunctionLength,
-  SetFunctionName,
   ToNumber,
   F,
 } from '../abstract-ops/all.mjs';
@@ -57,6 +55,7 @@ function Math_pow([base = Value.undefined, exponent = Value.undefined]) {
   return X(NumberValue.exponentiate(base, exponent));
 }
 
+/** @param {bigint} h */
 function fmix64(h) {
   h ^= h >> 33n;
   h *= 0xFF51AFD7ED558CCDn;
@@ -165,9 +164,7 @@ export function bootstrapMath(realmRec) {
       }
       return F(Math[name](...args));
     };
-    const func = CreateBuiltinFunction(method, [], realmRec);
-    X(SetFunctionName(func, new Value(name)));
-    X(SetFunctionLength(func, length));
+    const func = CreateBuiltinFunction(method, length, new Value(name), [], realmRec);
     mathObj.DefineOwnProperty(new Value(name), Descriptor({
       Value: func,
       Writable: Value.true,

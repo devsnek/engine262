@@ -7,8 +7,6 @@ import {
   CreateDataProperty,
   OrdinaryObjectCreate,
   ProxyCreate,
-  SetFunctionLength,
-  SetFunctionName,
   isProxyExoticObject,
 } from '../abstract-ops/all.mjs';
 import { Value } from '../value.mjs';
@@ -53,26 +51,27 @@ function Proxy_revocable([target = Value.undefined, handler = Value.undefined]) 
   const p = Q(ProxyCreate(target, handler));
   // 2. Let steps be the algorithm steps defined in #sec-proxy-revocation-functions.
   const steps = ProxyRevocationFunctions;
-  // 3. Let revoker be ! CreateBuiltinFunction(steps, « [[RevocableProxy]] »).
-  const revoker = X(CreateBuiltinFunction(steps, ['RevocableProxy']));
-  SetFunctionLength(revoker, 0);
-  SetFunctionName(revoker, new Value(''));
-  // 4. Set revoker.[[RevocableProxy]] to p.
+  // 3. Let length be the number of non-optional parameters of the function definition in Proxy Revocation Functions.
+  const length = 0;
+  // 4. Let revoker be ! CreateBuiltinFunction(steps, length, "", « [[RevocableProxy]] »).
+  const revoker = X(CreateBuiltinFunction(steps, length, new Value(''), ['RevocableProxy']));
+  // 5. Set revoker.[[RevocableProxy]] to p.
   revoker.RevocableProxy = p;
-  // 5. Let result be OrdinaryObjectCreate(%Object.prototype%).
+  // 6. Let result be OrdinaryObjectCreate(%Object.prototype%).
   const result = OrdinaryObjectCreate(surroundingAgent.intrinsic('%Object.prototype%'));
-  // 6. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
+  // 7. Perform ! CreateDataPropertyOrThrow(result, "proxy", p).
   X(CreateDataProperty(result, new Value('proxy'), p));
-  // 7. Perform ! CreateDataPropertyOrThrow(result, "revoke", revoker).
+  // 8. Perform ! CreateDataPropertyOrThrow(result, "revoke", revoker).
   X(CreateDataProperty(result, new Value('revoke'), revoker));
-  // 8. Return result.
+  // 9. Return result.
   return result;
 }
 
 export function bootstrapProxy(realmRec) {
-  const proxyConstructor = CreateBuiltinFunction(ProxyConstructor, [], realmRec, undefined, Value.true);
-  SetFunctionLength(proxyConstructor, 2);
-  SetFunctionName(proxyConstructor, new Value('Proxy'));
+  const proxyConstructor = CreateBuiltinFunction(
+    ProxyConstructor, 2, new Value('Proxy'), [],
+    realmRec, undefined, undefined, Value.true,
+  );
 
   assignProps(realmRec, proxyConstructor, [
     ['revocable', Proxy_revocable, 2],

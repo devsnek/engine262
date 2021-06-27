@@ -24,7 +24,7 @@ import { ValueMap, OutOfRange } from './helpers.mjs';
 
 // #sec-ecmascript-language-types
 export class Value {
-  constructor(value) {
+  constructor(value = undefined, length = undefined, name = undefined, prefix = undefined) {
     if (new.target !== Value) {
       return this;
     }
@@ -37,7 +37,11 @@ export class Value {
       case 'bigint':
         return new BigIntValue(value);
       case 'function':
-        return CreateBuiltinFunction(value, []);
+        return CreateBuiltinFunction(
+          value, length === undefined ? 0 : length,
+          name === undefined ? new Value('') : name,
+          [], undefined, undefined, prefix,
+        );
       default:
         throw new OutOfRange('new Value', value);
     }

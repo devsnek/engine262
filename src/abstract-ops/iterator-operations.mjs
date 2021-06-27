@@ -188,14 +188,22 @@ export function CreateIterResultObject(value, done) {
 
 // 7.4.9 #sec-createlistiteratorRecord
 export function CreateListIteratorRecord(list) {
+  // 1. Let iterator be ! OrdinaryObjectCreate(%IteratorPrototype%, « [[IteratedList]], [[ListNextIndex]] »).
   const iterator = OrdinaryObjectCreate(surroundingAgent.intrinsic('%IteratorPrototype%'), [
     'IteratedList',
     'ListNextIndex',
   ]);
+  // 2. Set iterator.[[IteratedList]] to list.
   iterator.IteratedList = list;
+  // 3. Set iterator.[[ListNextIndex]] to 0.
   iterator.ListNextIndex = 0;
+  // 4. Let steps be the algorithm steps defined in ListIteratorNext Functions.
   const steps = ListIteratorNextSteps;
-  const next = X(CreateBuiltinFunction(steps, []));
+  // 5. Let length be the number of non-optional parameters of the function definition in ListIteratorNext Functions.
+  const length = 0;
+  // 6. Let next be ! CreateBuiltinFunction(steps, length, "", « »).
+  const next = X(CreateBuiltinFunction(steps, length, new Value(''), []));
+  // 7. Return Record { [[Iterator]]: iterator, [[NextMethod]]: next, [[Done]]: *false* }.
   return {
     Iterator: iterator,
     NextMethod: next,
@@ -205,16 +213,26 @@ export function CreateListIteratorRecord(list) {
 
 // 7.4.9.1 #sec-listiterator-next
 function ListIteratorNextSteps(args, { thisValue }) {
+  // 1. Let O be the *this* value.
   const O = thisValue;
+  // 2. Assert: Type(O) is Object.
   Assert(Type(O) === 'Object');
+  // 3. Assert: O has an [[IteratedList]] internal slot.
   Assert('IteratedList' in O);
+  // 4. Let list be O.[[IteratedList]].
   const list = O.IteratedList;
+  // 5. Let index be O.[[ListNextIndex]].
   const index = O.ListNextIndex;
+  // 6. Let len be the number of elements of list.
   const len = list.length;
+  // 7. If index ≥ len, then
   if (index >= len) {
+    // a. Return CreateIterResultObject(undefined, true).
     return CreateIterResultObject(Value.undefined, Value.true);
   }
-  O.ListNextIndex += 1;
+  // 8. Set O.[[ListNextIndex]] to index + 1.
+  O.ListNextIndex = index + 1;
+  // 9. Return CreateIterResultObject(list[index], false).
   return CreateIterResultObject(list[index], Value.false);
 }
 
@@ -241,15 +259,28 @@ function AsyncFromSyncIteratorValueUnwrapFunctions([value = Value.undefined]) {
 
 // 25.1.4.4 #sec-asyncfromsynciteratorcontinuation
 export function AsyncFromSyncIteratorContinuation(result, promiseCapability) {
+  // 1. Let done be IteratorComplete(result).
   const done = IteratorComplete(result);
+  // 2. IfAbruptRejectPromise(done, promiseCapability).
   IfAbruptRejectPromise(done, promiseCapability);
+  // 3. Let value be IteratorValue(result).
   const value = IteratorValue(result);
+  // 4. IfAbruptRejectPromise(value, promiseCapability).
   IfAbruptRejectPromise(value, promiseCapability);
+  // 5. Let valueWrapper be PromiseResolve(%Promise%, value).
   const valueWrapper = PromiseResolve(surroundingAgent.intrinsic('%Promise%'), value);
+  // 6. IfAbruptRejectPromise(valueWrapper, promiseCapability).
   IfAbruptRejectPromise(valueWrapper, promiseCapability);
+  // 7. Let steps be the algorithm steps defined in Async-from-Sync Iterator Value Unwrap Functions.
   const steps = AsyncFromSyncIteratorValueUnwrapFunctions;
-  const onFulfilled = X(CreateBuiltinFunction(steps, ['Done']));
+  // 8. Let length be the number of non-optional parameters of the function definition in Async-from-Sync Iterator Value Unwrap Functions.
+  const length = 1;
+  // 9. Let onFulfilled be ! CreateBuiltinFunction(steps, length, "", « [[Done]] »).
+  const onFulfilled = X(CreateBuiltinFunction(steps, length, new Value(''), ['Done']));
+  // 10. Set onFulfilled.[[Done]] to done.
   onFulfilled.Done = done;
+  // 11. Perform ! PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).
   X(PerformPromiseThen(valueWrapper, onFulfilled, Value.undefined, promiseCapability));
+  // 12. Return promiseCapability.[[Promise]].
   return promiseCapability.Promise;
 }

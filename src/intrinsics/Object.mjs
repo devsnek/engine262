@@ -212,9 +212,11 @@ function Object_fromEntries([iterable = Value.undefined]) {
   Assert(obj.Extensible === Value.true && obj.properties.size === 0);
   // 4. Let stepsDefine be the algorithm steps defined in CreateDataPropertyOnObject Functions.
   const stepsDefine = CreateDataPropertyOnObjectFunctions;
-  // 5. Let adder be ! CreateBuiltinFunction(stepsDefine, « »).
-  const adder = X(CreateBuiltinFunction(stepsDefine, []));
-  // 6. Return ? AddEntriesFromIterable(obj, iterable, adder).
+  // 5. Let lengthDefine be the number of non-optional parameters of the function definition in CreateDataPropertyOnObject Functions.
+  const lengthDefine = 2;
+  // 6. Let adder be ! CreateBuiltinFunction(stepsDefine, lengthDefine, "", « »).
+  const adder = X(CreateBuiltinFunction(stepsDefine, lengthDefine, new Value(''), []));
+  // 7. Return ? AddEntriesFromIterable(obj, iterable, adder).
   return Q(AddEntriesFromIterable(obj, iterable, adder));
 }
 

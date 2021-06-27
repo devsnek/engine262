@@ -23,8 +23,6 @@ import {
   IsCallable,
   IsConstructor,
   SameValue,
-  SetFunctionLength,
-  SetFunctionName,
   GetFunctionRealm,
   isFunctionObject,
 } from './all.mjs';
@@ -57,19 +55,29 @@ export class PromiseReactionRecord {
 
 // 25.6.1.3 #sec-createresolvingfunctions
 export function CreateResolvingFunctions(promise) {
+  // 1. Let alreadyResolved be the Record { [[Value]]: false }.
   const alreadyResolved = { Value: false };
+  // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
   const stepsResolve = PromiseResolveFunctions;
-  const resolve = X(CreateBuiltinFunction(stepsResolve, ['Promise', 'AlreadyResolved']));
-  SetFunctionLength(resolve, 1);
-  SetFunctionName(resolve, new Value(''));
+  // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
+  const lengthResolve = 1;
+  // 4. Let resolve be ! CreateBuiltinFunction(stepsResolve, lengthResolve, "", « [[Promise]], [[AlreadyResolved]] »).
+  const resolve = X(CreateBuiltinFunction(stepsResolve, lengthResolve, new Value(''), ['Promise', 'AlreadyResolved']));
+  // 5. Set resolve.[[Promise]] to promise.
   resolve.Promise = promise;
+  // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
   resolve.AlreadyResolved = alreadyResolved;
+  // 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
   const stepsReject = PromiseRejectFunctions;
-  const reject = X(CreateBuiltinFunction(stepsReject, ['Promise', 'AlreadyResolved']));
-  SetFunctionLength(reject, 1);
-  SetFunctionName(reject, new Value(''));
+  // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
+  const lengthReject = 1;
+  // 9. Let reject be ! CreateBuiltinFunction(stepsReject, lengthReject, "", « [[Promise]], [[AlreadyResolved]] »).
+  const reject = X(CreateBuiltinFunction(stepsReject, lengthReject, new Value(''), ['Promise', 'AlreadyResolved']));
+  // 10. Set reject.[[Promise]] to promise.
   reject.Promise = promise;
+  // 11. Set reject.[[AlreadyResolved]] to alreadyResolved.
   reject.AlreadyResolved = alreadyResolved;
+  // 12. Return the Record { [[Resolve]]: resolve, [[Reject]]: reject }.
   return {
     Resolve: resolve,
     Reject: reject,
@@ -189,23 +197,34 @@ function FulfillPromise(promise, value) {
 
 // 25.6.1.5 #sec-newpromisecapability
 export function NewPromiseCapability(C) {
+  // 1. If IsConstructor(C) is false, throw a TypeError exception.
   if (IsConstructor(C) === Value.false) {
     return surroundingAgent.Throw('TypeError', 'NotAConstructor', C);
   }
+  // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 26.2.3.1).
+  // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
   const promiseCapability = new PromiseCapabilityRecord();
+  // 4. Let steps be the algorithm steps defined in GetCapabilitiesExecutor Functions.
   const steps = GetCapabilitiesExecutorFunctions;
-  const executor = X(CreateBuiltinFunction(steps, ['Capability']));
-  SetFunctionLength(executor, 2);
-  SetFunctionName(executor, new Value(''));
+  // 5. Let length be the number of non-optional parameters of the function definition in GetCapabilitiesExecutor Functions.
+  const length = 2;
+  // 6. Let executor be ! CreateBuiltinFunction(steps, length, "", « [[Capability]] »).
+  const executor = X(CreateBuiltinFunction(steps, length, new Value(''), ['Capability']));
+  // 7. Set executor.[[Capability]] to promiseCapability.
   executor.Capability = promiseCapability;
+  // 8. Let promise be ? Construct(C, « executor »).
   const promise = Q(Construct(C, [executor]));
+  // 9. If IsCallable(promiseCapability.[[Resolve]]) is false, throw a TypeError exception.
   if (IsCallable(promiseCapability.Resolve) === Value.false) {
     return surroundingAgent.Throw('TypeError', 'PromiseResolveFunction', promiseCapability.Resolve);
   }
+  // 10. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.
   if (IsCallable(promiseCapability.Reject) === Value.false) {
     return surroundingAgent.Throw('TypeError', 'PromiseRejectFunction', promiseCapability.Reject);
   }
+  // 11. Set promiseCapability.[[Promise]] to promise.
   promiseCapability.Promise = promise;
+  // 12. Return promiseCapability.
   return promiseCapability;
 }
 

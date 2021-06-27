@@ -3,8 +3,6 @@ import { Value } from '../value.mjs';
 import {
   Assert,
   CreateBuiltinFunction,
-  SetFunctionLength,
-  SetFunctionName,
   ToString,
 } from '../abstract-ops/all.mjs';
 import { CodePointAt } from '../static-semantics/all.mjs';
@@ -317,9 +315,6 @@ export function bootstrapURIHandling(realmRec) {
     ['encodeURI', encodeURI, 1],
     ['encodeURIComponent', encodeURIComponent, 1],
   ].forEach(([name, f, length]) => {
-    const fn = CreateBuiltinFunction(f, [], realmRec);
-    X(SetFunctionName(fn, new Value(name)));
-    X(SetFunctionLength(fn, length));
-    realmRec.Intrinsics[`%${name}%`] = fn;
+    realmRec.Intrinsics[`%${name}%`] = CreateBuiltinFunction(f, length, new Value(name), [], realmRec);
   });
 }

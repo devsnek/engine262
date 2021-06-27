@@ -355,11 +355,11 @@ export function HostImportModuleDynamically(referencingScriptOrModule, specifier
         const onFulfilled = CreateBuiltinFunction(([v = Value.undefined]) => {
           finish(NormalCompletion(v));
           return Value.undefined;
-        }, []);
+        }, 1, new Value(''), []);
         const onRejected = CreateBuiltinFunction(([r = Value.undefined]) => {
           finish(ThrowCompletion(r));
           return Value.undefined;
-        }, []);
+        }, 1, new Value(''), []);
         PerformPromiseThen(maybePromise, onFulfilled, onRejected);
       } else {
         finish(NormalCompletion(undefined));

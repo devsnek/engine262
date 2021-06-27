@@ -2,8 +2,6 @@ import {
   Assert,
   CreateBuiltinFunction,
   OrdinaryObjectCreate,
-  SetFunctionLength,
-  SetFunctionName,
 } from '../abstract-ops/all.mjs';
 import {
   Descriptor,
@@ -32,14 +30,16 @@ export function assignProps(realmRec, obj, props) {
         setter = Value.undefined,
       ] = v;
       if (typeof getter === 'function') {
-        getter = CreateBuiltinFunction(getter, [], realmRec);
-        X(SetFunctionLength(getter, 0));
-        X(SetFunctionName(getter, name, new Value('get')));
+        getter = CreateBuiltinFunction(
+          getter, 0, name, [],
+          realmRec, undefined, new Value('get'),
+        );
       }
       if (typeof setter === 'function') {
-        setter = CreateBuiltinFunction(setter, [], realmRec);
-        X(SetFunctionLength(setter, 1));
-        X(SetFunctionName(setter, name, new Value('set')));
+        setter = CreateBuiltinFunction(
+          setter, 1, name, [],
+          realmRec, undefined, new Value('set'),
+        );
       }
       X(obj.DefineOwnProperty(name, Descriptor({
         Get: getter,
@@ -55,9 +55,7 @@ export function assignProps(realmRec, obj, props) {
       let value;
       if (typeof v === 'function') {
         Assert(typeof len === 'number');
-        value = CreateBuiltinFunction(v, [], realmRec);
-        X(SetFunctionLength(value, len));
-        X(SetFunctionName(value, name));
+        value = CreateBuiltinFunction(v, len, name, [], realmRec);
       } else {
         value = v;
       }
@@ -91,10 +89,10 @@ export function bootstrapPrototype(realmRec, props, Prototype, stringTag) {
 }
 
 export function bootstrapConstructor(realmRec, Constructor, name, length, Prototype, props = []) {
-  const cons = CreateBuiltinFunction(Constructor, [], realmRec, undefined, Value.true);
-
-  SetFunctionLength(cons, length);
-  SetFunctionName(cons, new Value(name));
+  const cons = CreateBuiltinFunction(
+    Constructor, length, new Value(name), [],
+    realmRec, undefined, undefined, Value.true,
+  );
 
   X(cons.DefineOwnProperty(new Value('prototype'), Descriptor({
     Value: Prototype,

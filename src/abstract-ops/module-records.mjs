@@ -133,18 +133,35 @@ export function InnerModuleEvaluation(module, stack, index) {
 
 // https://tc39.es/proposal-top-level-await/#sec-execute-async-module
 function ExecuteAsyncModule(module) {
+  // 1. Assert: module.[[Status]] is evaluating or evaluated.
   Assert(module.Status === 'evaluating' || module.Status === 'evaluated');
+  // 2. Assert: module.[[Async]] is true.
   Assert(module.Async === Value.true);
+  // 3. Set module.[[AsyncEvaluating]] to true.
   module.AsyncEvaluating = Value.true;
+  // 4. Let capability be ! NewPromiseCapability(%Promise%).
   const capability = X(NewPromiseCapability(surroundingAgent.intrinsic('%Promise%')));
+  // 5. Let stepsFulfilled be the steps of a CallAsyncModuleFulfilled function as specified below.
   const stepsFulfilled = CallAsyncModuleFulfilled;
-  const onFulfilled = CreateBuiltinFunction(stepsFulfilled, ['Module']);
+  // 6. Let lengthFulfilled be the number of non-optional parameters of a CallAsyncModuleFulfilled function as specified below.
+  const lengthFulfilled = 0;
+  // 7. Let onFulfilled be CreateBuiltinFunction(stepsFulfilled, « [[Module]] »).
+  const onFulfilled = CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, new Value(''), ['Module']);
+  // 8. Set onFulfilled.[[Module]] to module.
   onFulfilled.Module = module;
+  // 9. Let stepsRejected be the steps of a CallAsyncModuleRejected function as specified below.
   const stepsRejected = CallAsyncModuleRejected;
-  const onRejected = CreateBuiltinFunction(stepsRejected, ['Module']);
+  // 10. Let lengthRejected be the number of non-optional parameters of a CallAsyncModuleFulfilled function as specified below.
+  const lengthRejected = 1;
+  // 11. Let onRejected be CreateBuiltinFunction(stepsRejected, « [[Module]] »).
+  const onRejected = CreateBuiltinFunction(stepsRejected, lengthRejected, new Value(''), ['Module']);
+  // 12. Set onRejected.[[Module]] to module.
   onRejected.Module = module;
+  // 13. Perform ! PerformPromiseThen(capability.[[Promise]], onFulfilled, onRejected).
   X(PerformPromiseThen(capability.Promise, onFulfilled, onRejected));
+  // 14. Perform ! module.ExecuteModule(capability).
   X(module.ExecuteModule(capability));
+  // 15. Return.
   return Value.undefined;
 }
 

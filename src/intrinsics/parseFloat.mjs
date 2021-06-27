@@ -1,7 +1,5 @@
 import {
   CreateBuiltinFunction,
-  SetFunctionName,
-  SetFunctionLength,
   ToString,
   F,
 } from '../abstract-ops/all.mjs';
@@ -75,8 +73,5 @@ function ParseFloat([string = Value.undefined]) {
 }
 
 export function bootstrapParseFloat(realmRec) {
-  const fn = CreateBuiltinFunction(ParseFloat, [], realmRec);
-  X(SetFunctionName(fn, new Value('parseFloat')));
-  X(SetFunctionLength(fn, 1));
-  realmRec.Intrinsics['%parseFloat%'] = fn;
+  realmRec.Intrinsics['%parseFloat%'] = CreateBuiltinFunction(ParseFloat, 1, new Value('parseFloat'), [], realmRec);
 }

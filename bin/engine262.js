@@ -126,22 +126,19 @@ realm.scope(() => {
   const log = new Value((args) => {
     process.stdout.write(`${format(args)}\n`);
     return Value.undefined;
-  });
-
+  }, 1, new Value('log'));
   CreateDataProperty(console, new Value('log'), log);
 
   const error = new Value((args) => {
     process.stderr.write(`${format(args)}\n`);
     return Value.undefined;
-  });
-
+  }, 1, new Value('error'));
   CreateDataProperty(console, new Value('error'), error);
 
   const debug = new Value((args) => {
     process.stderr.write(`${util.format(...args)}\n`);
     return Value.undefined;
-  });
-
+  }, 1, new Value('debug'));
   CreateDataProperty(console, new Value('debug'), debug);
 });
 

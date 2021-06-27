@@ -5,8 +5,6 @@ import {
   Assert,
   CreateBuiltinFunction,
   PerformEval,
-  SetFunctionLength,
-  SetFunctionName,
 } from '../abstract-ops/all.mjs';
 
 // #sec-eval-x
@@ -22,9 +20,5 @@ function Eval([x = Value.undefined]) {
 }
 
 export function bootstrapEval(realmRec) {
-  const it = CreateBuiltinFunction(Eval, [], realmRec);
-  SetFunctionName(it, new Value('eval'));
-  SetFunctionLength(it, 1);
-
-  realmRec.Intrinsics['%eval%'] = it;
+  realmRec.Intrinsics['%eval%'] = CreateBuiltinFunction(Eval, 1, new Value('eval'), [], realmRec);
 }
